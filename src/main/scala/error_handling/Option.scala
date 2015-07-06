@@ -1,11 +1,5 @@
 package error_handling
 
-/** Hide std library `Option` and `Either`, since we are writing our own */
-//import scala.{Option => _, Either => _, _}
-
-case class Some[+A](get: A) extends Option[A]
-case object None extends Option[Nothing]
-
 sealed trait Option[+A] {
   def map[B](f: A => B): Option[B] =
     this match {
@@ -28,9 +22,12 @@ sealed trait Option[+A] {
   def filter(f: A => Boolean): Option[A] =
     this match {
       case Some(a) if f(a) => this
-      case None => None
+      case _ => None
     }
 }
+
+case class Some[+A](get: A) extends Option[A]
+case object None extends Option[Nothing]
 
 
 object Option {
