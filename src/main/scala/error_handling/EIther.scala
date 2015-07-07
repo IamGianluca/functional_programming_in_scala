@@ -31,7 +31,6 @@ sealed trait Either[+E, +A] {
     as match {
       case Nil => Right(Nil)
       case h :: t => (f(h) map2 traverse(t)(f))(_ :: _)
-
     }
 
   /** Combines a list of Either into one Either containing a list of all
