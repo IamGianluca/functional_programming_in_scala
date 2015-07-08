@@ -10,8 +10,7 @@ sealed trait Stream[+A] {
       case Cons(h, t) => Some(h())
     }
 
-  /** Convert a Stream to a List, which will force its
-    *   evaluation and let you look at it in the REPL */
+  /** Convert a Stream to a List, which will force its evaluation and let you look at it in the REPL */
   def toList: List[A] =
     this match {
       case Cons(h,t) => h() :: t().toList
@@ -32,6 +31,13 @@ sealed trait Stream[+A] {
       case Cons(h, t) if n > 0 => t().drop(n - 1)
       case _ => empty
     }
+
+  /** Return all starting elements of a Stream that match the given predicate */
+  def takeWhile(f: A => Boolean): Stream[A] =
+    this match {
+      case Cons(h, t) if f(h()) => cons(h(), t() takeWhile f)
+      case _ => empty
+    }
 }
 
 case object Empty extends Stream[Nothing]
@@ -45,12 +51,10 @@ object Stream {
     Cons(() => head, () => tail)
   }
 
-  /** Smart constructor for creating an empty stream of a particular
-    *   type */
+  /** Smart constructor for creating an empty stream of a particular type */
   def empty[A]: Stream[A] = Empty
 
-  /** Convenient variable-argument method for constructing a Stream
-    *   from multiple elements */
+  /** Convenient variable-argument method for constructing a Stream from multiple elements */
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
 }
