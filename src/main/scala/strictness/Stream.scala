@@ -10,10 +10,11 @@ sealed trait Stream[+A] {
 
   /** Convert a Stream to a List, which will force its
     *   evaluation and let you look at it in the REPL */
-  def toList: List[A] = this match {
-    case Cons(h,t) => h() :: t().toList
-    case _ => List()
-  }
+  def toList: List[A] =
+    this match {
+      case Cons(h,t) => h() :: t().toList
+      case _ => List()
+    }
 }
 
 case object Empty extends Stream[Nothing]
