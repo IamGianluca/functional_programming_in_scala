@@ -1,5 +1,7 @@
 package strictness
 
+import Stream._
+
 sealed trait Stream[+A] {
   /** Optionally extract the head of a stream */
   def headOption: Option[A] =
@@ -14,6 +16,21 @@ sealed trait Stream[+A] {
     this match {
       case Cons(h,t) => h() :: t().toList
       case _ => List()
+    }
+
+  /** Return the first n element of a Stream */
+  def take(n: Int): Stream[A] =
+    this match {
+      case Cons(h, t) if n > 1 => cons(h(), t().take(n - 1))
+      case Cons(h, t) if n == 1 => cons(h(), empty)
+      case _ => empty
+    }
+
+  /** Skip the first n elements of a Stream */
+  def drop(n: Int): Stream[A] =
+    this match {
+      case Cons(h, t) if n > 0 => t().drop(n - 1)
+      case _ => empty
     }
 }
 
