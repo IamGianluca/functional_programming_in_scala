@@ -3,7 +3,7 @@ package strictness
 import Stream._
 
 sealed trait Stream[+A] {
-  /** Optionally extract the head of a stream */
+  /** Optionally extract the head of a Stream */
   def headOption: Option[A] =
     this match {
       case Empty =>  None
@@ -12,7 +12,7 @@ sealed trait Stream[+A] {
 
   /** Write headOption using foldRight */
   def headOption2: Option[A] =
-    ???
+    foldRight(None: Option[A])((h, t) => Some(h))
 
   /** Convert a Stream to a List, which will force its evaluation and let you look at it in the REPL */
   def toList: List[A] =
