@@ -68,6 +68,18 @@ sealed trait Stream[+A] {
   /** Check that all elements in the Stream match a given predicate */
   def forAll(p: A => Boolean): Boolean =
     foldRight(false)((a, b) => p(a))
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(empty[B])((h, t) => cons(f(h), t))
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(empty[A])((h,t) => if (f(h)) cons(h, t) else t)
+
+  def append[A](s1: Stream[A], s2: Stream[A]): Stream[A] =
+    ???
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    ???
 }
 
 case object Empty extends Stream[Nothing]
