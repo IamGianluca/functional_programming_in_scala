@@ -98,6 +98,18 @@ sealed trait Stream[+A] {
   /** Function which generates an infinite stream of integers, starting from n, then n + 1, n + 2, and so on */
   def from(n: Int): Stream[Int] =
     cons(n, from(n + 1))
+
+  /** Function that generates the infinite stream of Fibonacci numbers
+    * TODO: It seems fine to me but console says there is a type mismatch (?) */
+  val fibs = {
+    def fib(n: Int = 0, acc: Int = 1): Stream[Int] =
+      cons(n, fib(n + acc, n))
+    fib()
+  }
+
+  /** General stream building function */
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
+    ???
 }
 
 case object Empty extends Stream[Nothing]
