@@ -80,6 +80,24 @@ sealed trait Stream[+A] {
 
   def flatMap[B](f: A => Stream[B]): Stream[B] =
     foldRight(empty[B])((h, t) => f(h) append t)
+
+  def find(p: A => Boolean): Option[A] =
+    filter(p).headOption
+
+  /** Example of an infinite Stream */
+  def constant[A](a: A): Stream[A] =
+    cons(a, constant(a))
+
+  /** This is more efficient than `cons(a, constant(a))` since it's just one object referencing itself
+    * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
+  def constantUsingLazyVal[A](a: A): Stream[A] = {
+    lazy val tail: Stream[A] = Cons(() => a, () => tail)
+    tail
+  }
+
+  /** Function which generates an infinite stream of integers, starting from n, then n + 1, n + 2, and so on */
+  def from(n: Int): Stream[Int] =
+    cons(n, from(n + 1))
 }
 
 case object Empty extends Stream[Nothing]
