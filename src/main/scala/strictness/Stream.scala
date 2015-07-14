@@ -54,6 +54,12 @@ sealed trait Stream[+A] {
   def takeWhile2(f: A => Boolean): Stream[A] =
     foldRight(empty[A])((h, t) => if (f(h)) cons(h, t) else empty)
 
+  def takeWhileViaUnfold(f: A => Boolean): Stream[A] =
+    unfold(this) {
+      case Cons(h, t) if f(h()) => Some((h(), t()))
+      case _ => None
+    }
+
   /** Check whether an element matching a Boolean function exists in this stream */
   def exists(p: A => Boolean): Boolean =
     this match {
