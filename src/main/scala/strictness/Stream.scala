@@ -83,37 +83,6 @@ sealed trait Stream[+A] {
 
   def find(p: A => Boolean): Option[A] =
     filter(p).headOption
-
-  /** Example of an infinite Stream */
-  def constant[A](a: A): Stream[A] =
-    cons(a, constant(a))
-
-  /** This is more efficient than `cons(a, constant(a))` since it's just one object referencing itself
-    * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
-  def constantUsingLazyVal[A](a: A): Stream[A] = {
-    lazy val tail: Stream[A] = Cons(() => a, () => tail)
-    tail
-  }
-
-  /** Function which generates an infinite stream of integers, starting from n, then n + 1, n + 2, and so on */
-  def from(n: Int): Stream[Int] =
-    cons(n, from(n + 1))
-
-  /** Function that generates the infinite stream of Fibonacci numbers
-    * TODO: It seems fine to me but console says there is a type mismatch (?) */
-  val fibs = {
-    def fib(n: Int = 0, acc: Int = 1): Stream[Int] =
-      cons(n, fib(n + acc, n))
-    fib()
-  }
-
-  /** General stream building function
-    * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
-  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
-    f(z) match {
-      case Some((h, t)) => cons(h, unfold(t)(f))
-      case None => empty
-    }
 }
 
 case object Empty extends Stream[Nothing]
@@ -133,4 +102,42 @@ object Stream {
   /** Convenient variable-argument method for constructing a Stream from multiple elements */
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+
+  /** Example of an infinite Stream */
+  def constant[A](a: A): Stream[A] =
+    cons(a, constant(a))
+
+  /** This is more efficient than `cons(a, constant(a))` since it's just one object referencing itself
+    * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
+  def constantUsingLazyVal[A](a: A): Stream[A] = {
+    lazy val tail: Stream[A] = Cons(() => a, () => tail)
+    tail
+  }
+
+  /** Function which generates an infinite stream of integers, starting from n, then n + 1, n + 2, and so on */
+  def from(n: Int): Stream[Int] =
+    cons(n, from(n + 1))
+
+
+  /** Function that generates the infinite stream of Fibonacci numbers
+    * TODO: It seems fine to me but console says there is a type mismatch (?) */
+  val fib = {
+    def fibs(n: Int = 0, acc: Int = 1): Stream[Int] =
+      cons(n, fibs(n + acc, n))
+    fibs()
+  }
+
+  /** Implement fibs using unfold */
+  def fibsViaUnfold(n: Int = 0, acc: Int = 1): Stream[Int] =
+    unfold((n, acc)) {
+      case(n, acc) => Some((n, (acc, n + acc)))
+    }
+
+  /** General stream building function
+    * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
+  def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] =
+    f(z) match {
+      case Some((h, t)) => cons(h, unfold(t)(f))
+      case None => empty
+    }
 }
