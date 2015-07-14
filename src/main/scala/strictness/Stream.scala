@@ -118,6 +118,8 @@ object Stream {
   def from(n: Int): Stream[Int] =
     cons(n, from(n + 1))
 
+  def fromViaUnfold(n: Int): Stream[Int] =
+    unfold(n)(n => Some((n, n + 1)))
 
   /** Function that generates the infinite stream of Fibonacci numbers
     * TODO: It seems fine to me but console says there is a type mismatch (?) */
