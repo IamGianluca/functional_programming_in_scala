@@ -109,10 +109,13 @@ object Stream {
 
   /** This is more efficient than `cons(a, constant(a))` since it's just one object referencing itself
     * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
-  def constantUsingLazyVal[A](a: A): Stream[A] = {
+  def constantViaLazyVal[A](a: A): Stream[A] = {
     lazy val tail: Stream[A] = Cons(() => a, () => tail)
     tail
   }
+
+  def constantViaUnfold[A](a: A): Stream[A] =
+    unfold(a)(a => Some((a, a)))
 
   /** Function which generates an infinite stream of integers, starting from n, then n + 1, n + 2, and so on */
   def from(n: Int): Stream[Int] =
