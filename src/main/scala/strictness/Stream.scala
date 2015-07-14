@@ -29,6 +29,13 @@ sealed trait Stream[+A] {
       case _ => empty
     }
 
+  def takeViaUnfold(n: Int): Stream[A] =
+    unfold(this, n) {
+      case (Cons(h, t), 1) => Some((h(), (empty, 0)))
+      case (Cons(h, t), n) => Some((h(), (t(), n - 1)))
+      case _ => None
+    }
+
   /** Skip the first n elements of a Stream */
   def drop(n: Int): Stream[A] =
     this match {
@@ -71,6 +78,12 @@ sealed trait Stream[+A] {
 
   def map[B](f: A => B): Stream[B] =
     foldRight(empty[B])((h, t) => cons(f(h), t))
+
+  def mapViaUnfold[B](f: A => B): Stream[B] =
+    unfold(this) {
+      case Cons(h, t) => Some((f(h()), t()))
+      case _ => None
+    }
 
   def filter(f: A => Boolean): Stream[A] =
     foldRight(empty[A])((h,t) => if (f(h)) cons(h, t) else t)
