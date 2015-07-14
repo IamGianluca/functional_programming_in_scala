@@ -1,7 +1,5 @@
 package strictness
 
-import java.util.concurrent.atomic.DoubleAccumulator
-
 import Stream._
 
 sealed trait Stream[+A] {
@@ -116,7 +114,7 @@ sealed trait Stream[+A] {
 
   /** Check if one Stream is a prefix of another
     * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
-  def startsWith[A](s: Stream[A]): Boolean =
+  def startsWith[B](s: Stream[B]): Boolean =
     zipAll(s).takeWhile(_._2.isDefined) forAll {
       case (h, h2) => h == h2
     }
