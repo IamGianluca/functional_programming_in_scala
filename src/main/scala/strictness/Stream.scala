@@ -1,5 +1,7 @@
 package strictness
 
+import java.util.concurrent.atomic.DoubleAccumulator
+
 import Stream._
 
 sealed trait Stream[+A] {
@@ -32,7 +34,7 @@ sealed trait Stream[+A] {
   def takeViaUnfold(n: Int): Stream[A] =
     unfold((this, n)) {
       case (Cons(h, t), 1) => Some((h(), (empty, 0)))
-      case (Cons(h, t), n) if n > 1 => Some((h(), (t(), n - 1)))
+      case (Cons(h, t), x) if n > 1 => Some((h(), (t(), x - 1)))
       case _ => None
     }
 
@@ -90,6 +92,41 @@ sealed trait Stream[+A] {
       case Cons(h, t) => Some((f(h()), t()))
       case _ => None
     }
+
+  /** Function which accepts two streams and construct a new stream by passing a function over the corresponding
+    *   pairwise elements */
+  def zipWith[B,C](s2: Stream[B])(f: (A,B) => C): Stream[C] =
+    unfold((this, s2)) {
+      case (Cons(h1, t1), Cons(h2, t2)) => Some((f(h1(), h2()), (t1(), t2())))
+      case _ => None
+    }
+
+  /** Differently from zipWith, this function should continue the traversal as long as either stream has more elements;
+    *   it uses Option to indicate whether each stream has been exhausted */
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] =
+    zipWithAll(s2)((_, _))
+
+  def zipWithAll[B, C](s2: Stream[B])(f: (Option[A], Option[B]) => C): Stream[C] =
+  unfold((this, s2)) {
+    case (Empty, Empty) => None
+    case (Cons(h1, t1), Empty) => Some(f(Some(h1()), Option.empty[B]) -> (t1(), empty[B]))
+    case (Empty, Cons(h2, t2)) => Some(f(Option.empty[A], Some(h2())) -> (empty[A] -> t2()))
+    case (Cons(h1, t1), Cons(h2, t2)) => Some(f(Some(h1()), Some(h2())) -> (t1() -> t2()))
+  }
+
+  /** Check if one Stream is a prefix of another
+    * Source: https://github.com/fpinscala/fpinscala/blob/master/answers/src/main/scala/fpinscala/laziness/Stream.scala */
+  def startsWith[A](s: Stream[A]): Boolean =
+    zipAll(s).takeWhile(_._2.isDefined) forAll {
+      case (h, h2) => h == h2
+    }
+
+  /** Return the Stream of suffixes of the input sequence, starting from the original Stream */
+  def tails: Stream[Stream[A]] =
+    unfold(this) {
+      case Empty => None
+      case s => Some((s, s drop 1))
+    } append Stream(empty)
 
   def filter(f: A => Boolean): Stream[A] =
     foldRight(empty[A])((h,t) => if (f(h)) cons(h, t) else t)
@@ -152,8 +189,8 @@ object Stream {
   }
 
   /** Implement fibs using unfold */
-  def fibsViaUnfold(n: Int = 0, acc: Int = 1): Stream[Int] =
-    unfold((n, acc)) {
+  def fibsViaUnfold(start: Int = 0, accumulator: Int = 1): Stream[Int] =
+    unfold((start, accumulator)) {
       case(n, acc) => Some((n, (acc, n + acc)))
     }
 
