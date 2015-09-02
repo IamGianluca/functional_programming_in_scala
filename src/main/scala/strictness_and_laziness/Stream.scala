@@ -1,4 +1,4 @@
-package strictness
+package strictness_and_laziness
 
 import Stream._
 
